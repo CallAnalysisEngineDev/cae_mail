@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd 
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-4.2.xsd ">
+    
+    <context:component-scan base-package="org.cae.mail.service.impl"/>
+    <context:component-scan base-package="org.cae.mail.controller.impl"/>
+    
+    <bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">  
+        <property name="connectionFactory">  
+            <bean class="org.apache.activemq.ActiveMQConnectionFactory">  
+                <property name="brokerURL">  
+                    <value>tcp://127.0.0.1:61616</value>  
+                </property>  
+            </bean>  
+        </property>  
+        <property name="maxConnections" value="100"></property>  
+    </bean>
+    <bean id="destination" class="org.apache.activemq.command.ActiveMQQueue">  
+        <constructor-arg index="0" value="queue_temp"></constructor-arg>  
+    </bean>
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="jmsFactory"></property> 
+        <property name="defaultDestination" ref="destination" />  
+    </bean>
+    <bean id="jmsContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">   
+        <property name="connectionFactory" ref="jmsFactory" />    
+        <property name="destination" ref="destination" />    
+        <property name="messageListener" ref="mailController" />    
+    </bean>
+    
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="defaultEncoding" value="utf-8"/>
+        <property name="host" value="smtp.163.com"/>
+        <property name="username" value="callanalysisengine@163.com"/>
+        <property name="password" value="cae111"/>
+        <property name="javaMailProperties">
+            <props>
+                <prop key="mail.smtp.auth">true</prop>
+                <prop key="mail.smtp.starttls.enable">true</prop>
+            </props>
+        </property>
+    </bean>
+</beans>
