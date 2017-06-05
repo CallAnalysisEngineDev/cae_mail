@@ -1,8 +1,8 @@
 package org.cae.mail.service;
 
-import org.cae.mail.entity.Mail;
+import org.cae.mail.entity.MailMessage;
 
 public interface IMailService {
 
-	void sendMailService(Mail mail);
+	void sendMailService(MailMessage mailMessage);
 }

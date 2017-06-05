@@ -5,7 +5,6 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
-import org.cae.mail.common.IConstant;
 import org.cae.mail.common.Util;
 import org.cae.mail.entity.MailMessage;
 import org.cae.mail.service.IMailService;
@@ -30,8 +29,7 @@ public class MailControllerImpl implements MessageListener {
 	}
 
 	private void sendMailController(MailMessage mailMessage) {
-		if(mailMessage.getType()==IConstant.USER_ADVICE)
-			mailService.sendMailService(mailMessage.getMail());
+		mailService.sendMailService(mailMessage);
 	}
 
 }
