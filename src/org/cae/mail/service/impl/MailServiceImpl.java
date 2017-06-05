@@ -43,9 +43,9 @@ public class MailServiceImpl implements IMailService {
 			mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 			mimeMessageHelper.setTo("709782571@qq.com");
 			String nick = javax.mail.internet.MimeUtility.encodeText("cae项目组");
-	        mimeMessageHelper.setFrom(new InternetAddress(nick + "<callanalysisengine@163.com>"));
-	        mimeMessageHelper.setSubject("测试邮件主题");
-	        mimeMessageHelper.setText("测试邮件内容");
+	        mimeMessageHelper.setFrom(new InternetAddress(nick+"<callanalysisengine@163.com>"));
+	        mimeMessageHelper.setSubject(mail.getTitle());
+	        mimeMessageHelper.setText(mail.getContent());
 	        mailSender.send(mimeMessage);
 		} catch (MessagingException | UnsupportedEncodingException e) {
 			e.printStackTrace();

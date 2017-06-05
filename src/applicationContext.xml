@@ -22,7 +22,7 @@
         <property name="maxConnections" value="100"></property>  
     </bean>
     <bean id="destination" class="org.apache.activemq.command.ActiveMQQueue">  
-        <constructor-arg index="0" value="queue_temp"></constructor-arg>  
+        <constructor-arg index="0" value="MailQueue"></constructor-arg>
     </bean>
     <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
         <property name="connectionFactory" ref="jmsFactory"></property> 
