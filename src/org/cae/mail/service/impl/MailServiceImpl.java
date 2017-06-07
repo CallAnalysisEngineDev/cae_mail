@@ -2,6 +2,7 @@ package org.cae.mail.service.impl;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class MailServiceImpl implements IMailService {
 		list.add("callanalysisengine@163.com");
 		list.add("lq664376661@163.com");
 		receiversMap.put(IConstant.USER_ADVICE, list);
+		receiversMap=Collections.unmodifiableMap(receiversMap);
 	}
 	
 	@Override
