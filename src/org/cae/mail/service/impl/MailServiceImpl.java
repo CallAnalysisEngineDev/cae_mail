@@ -36,9 +36,9 @@ public class MailServiceImpl implements IMailService {
 	public void init(){
 		receiversMap=new HashMap<Integer,List<String>>();
 		List<String> list=new ArrayList<String>();
-		list.add("709782571@qq.com");
+		//list.add("709782571@qq.com");
 		list.add("callanalysisengine@163.com");
-		list.add("lq664376661@163.com");
+		//list.add("lq664376661@163.com");
 		receiversMap.put(IConstant.USER_ADVICE, list);
 		receiversMap=Collections.unmodifiableMap(receiversMap);
 	}
