@@ -5,7 +5,7 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
-import org.cae.mail.common.Util;
+import static org.cae.mail.common.Util.toObject;
 import org.cae.mail.entity.MailMessage;
 import org.cae.mail.service.IMailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class MailControllerImpl implements MessageListener {
 	public void onMessage(Message message) {
 		try {
 			TextMessage textMessage=(TextMessage) message;
-			MailMessage mailMessage=Util.toObject(textMessage.getText(), MailMessage.class);
+			MailMessage mailMessage=toObject(textMessage.getText(), MailMessage.class);
 			sendMailController(mailMessage);
 		} catch (JMSException e) {
 			e.printStackTrace();
