@@ -11,9 +11,11 @@
     <context:component-scan base-package="org.cae.mail.service.impl"/>
     <context:component-scan base-package="org.cae.mail.controller.impl"/>
     
+    <!-- ActiveMQ的配置 -->
     <bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">  
         <property name="connectionFactory">  
             <bean class="org.apache.activemq.ActiveMQConnectionFactory">  
+            	<!-- 连接的是本地的ActiveMQ,默认端口为61616 -->
                 <property name="brokerURL">  
                     <value>tcp://127.0.0.1:61616</value>  
                 </property>  
@@ -34,6 +36,7 @@
         <property name="messageListener" ref="mailController" />    
     </bean>
     
+    <!-- Spring Mail的配置 -->
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
         <property name="defaultEncoding" value="utf-8"/>
         <property name="host" value="smtp.163.com"/>
@@ -47,9 +50,12 @@
         </property>
     </bean>
     
+    <!-- Spring线程池配置 -->
     <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+    	<!-- 核心线程总数 -->
     	<property name="corePoolSize" value="4" />
         <property name="keepAliveSeconds" value="200" />
+        <!-- 最大线程数 -->
         <property name="maxPoolSize" value="10" />
         <property name="queueCapacity" value="25" />
     </bean>
