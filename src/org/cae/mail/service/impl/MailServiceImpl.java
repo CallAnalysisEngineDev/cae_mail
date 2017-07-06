@@ -42,8 +42,7 @@ public class MailServiceImpl implements IMailService {
 	public void init(){
 		receiversMap=new HashMap<Integer,List<String>>();
 		SAXReader reader = new SAXReader(); 
-		Map<Boolean, String> validateResult=validateXML("src/mail.xml", "src/schema.xsd");
-	if(validateResult.get(true)!=null){
+	if(validateXML("src/mail.xml", "src/schema.xsd")){
 		try{
 			Document document=reader.read(new File("src/mail.xml"));
 			List<Element> mail =document.getRootElement().element("mails").elements("mail");
@@ -64,9 +63,7 @@ public class MailServiceImpl implements IMailService {
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
-		}else {
-			System.out.println(validateResult.get(false));
-		}
+	}
 	}
 	
 	@Override

@@ -135,10 +135,8 @@ public class Util {
 	 * @param Xsd文件的路径
 	 * @return 返回校验成功的标志
 	 */
-	public static Map<Boolean, String> validateXML(String xmlFilePath,String xsdFilePath) { 
-		Map<Boolean, String> validateResult=new HashMap<Boolean,String>();
+	public static boolean validateXML(String xmlFilePath,String xsdFilePath) { 
     	boolean isSuccessed=false;
-    	String errorMessage=null;
 		try { 
             XMLErrorHandler errorHandler = new XMLErrorHandler(); 
             SAXParserFactory factory = SAXParserFactory.newInstance(); 
@@ -156,19 +154,16 @@ public class Util {
             SAXValidator validator = new SAXValidator(parser.getXMLReader());  
             validator.setErrorHandler(errorHandler); 
             validator.validate(xmlDocument); 
- 
             if (errorHandler.getErrors().hasContent()) { 
+            	System.err.println(errorHandler.getErrors().toString());
                isSuccessed=false;
-               errorMessage=errorHandler.getErrors().toString();
             } else { 
                 isSuccessed=true;
-                errorMessage="true";
             } 
-            validateResult.put(isSuccessed, errorMessage);
-            return validateResult;
+            return isSuccessed;
         } catch (Exception ex) { 
-            validateResult.put(isSuccessed, ex.getMessage());
-            return validateResult;
+        	System.err.println(ex.getMessage());
+            return isSuccessed;
         } 
     } 
 }
