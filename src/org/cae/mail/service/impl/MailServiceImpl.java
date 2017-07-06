@@ -27,7 +27,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-
+import static org.cae.mail.common.Util.validateXML;
 @Service("mailService")
 public class MailServiceImpl implements IMailService {
 
@@ -42,26 +42,31 @@ public class MailServiceImpl implements IMailService {
 	public void init(){
 		receiversMap=new HashMap<Integer,List<String>>();
 		SAXReader reader = new SAXReader(); 
-	try{
-		Document document=reader.read(new File("src/mail.xml"));
-		List<Element> mail =document.getRootElement().element("mails").elements("mail");
-		for(Iterator<Element> iterator=mail.iterator();iterator.hasNext();){
-			Integer type;
-			Element element =(Element) iterator.next();
-			List<String> mailList=new ArrayList<String>();
-			Attribute attribute=element.attribute("type");
-			type=Integer.valueOf(attribute.getData().toString());
-			List<Element> address =element.elements("address");
-			for(Iterator<Element> iterator2=address.iterator();iterator2.hasNext();){
-				element=(Element)iterator2.next();
-				mailList.add(element.getText());
+		Map<Boolean, String> validateResult=validateXML("src/mail.xml", "src/schema.xsd");
+	if(validateResult.get(true)!=null){
+		try{
+			Document document=reader.read(new File("src/mail.xml"));
+			List<Element> mail =document.getRootElement().element("mails").elements("mail");
+			for(Iterator<Element> iterator=mail.iterator();iterator.hasNext();){
+				Integer type;
+				Element element =(Element) iterator.next();
+				List<String> mailList=new ArrayList<String>();
+				Attribute attribute=element.attribute("type");
+				type=Integer.valueOf(attribute.getData().toString());
+				List<Element> address =element.elements("address");
+				for(Iterator<Element> iterator2=address.iterator();iterator2.hasNext();){
+					element=(Element)iterator2.next();
+					mailList.add(element.getText());
+				}
+				receiversMap.put(type, mailList);
 			}
-			receiversMap.put(type, mailList);
+			receiversMap=Collections.unmodifiableMap(receiversMap);
+		}catch (Exception e) {
+			e.printStackTrace();
 		}
-		receiversMap=Collections.unmodifiableMap(receiversMap);
-	}catch (Exception e) {
-		e.printStackTrace();
-	}
+		}else {
+			System.out.println(validateResult.get(false));
+		}
 	}
 	
 	@Override
