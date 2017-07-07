@@ -1,9 +1,11 @@
 package org.cae.mail.service.impl;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -16,12 +18,16 @@ import org.cae.mail.common.IConstant;
 import org.cae.mail.entity.Mail;
 import org.cae.mail.entity.MailMessage;
 import org.cae.mail.service.IMailService;
+import org.dom4j.Attribute;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-
+import static org.cae.mail.common.Util.validateXML;
 @Service("mailService")
 public class MailServiceImpl implements IMailService {
 
@@ -31,16 +37,33 @@ public class MailServiceImpl implements IMailService {
 	private ThreadPoolTaskExecutor threadPool;
 	private Map<Integer,List<String>> receiversMap;
 	
-	//目前先写死,之后再写成xml配置且支持热部署的功能
+	//解析XML配置实现热部署功能
 	@PostConstruct
 	public void init(){
 		receiversMap=new HashMap<Integer,List<String>>();
-		List<String> list=new ArrayList<String>();
-		//list.add("709782571@qq.com");
-		list.add("callanalysisengine@163.com");
-		//list.add("lq664376661@163.com");
-		receiversMap.put(IConstant.USER_ADVICE, list);
-		receiversMap=Collections.unmodifiableMap(receiversMap);
+		SAXReader reader = new SAXReader(); 
+	if(validateXML("src/mail.xml", "src/schema.xsd")){
+		try{
+			Document document=reader.read(new File("src/mail.xml"));
+			List<Element> mail =document.getRootElement().element("mails").elements("mail");
+			for(Iterator<Element> iterator=mail.iterator();iterator.hasNext();){
+				Integer type;
+				Element element =(Element) iterator.next();
+				List<String> mailList=new ArrayList<String>();
+				Attribute attribute=element.attribute("type");
+				type=Integer.valueOf(attribute.getData().toString());
+				List<Element> address =element.elements("address");
+				for(Iterator<Element> iterator2=address.iterator();iterator2.hasNext();){
+					element=(Element)iterator2.next();
+					mailList.add(element.getText());
+				}
+				receiversMap.put(type, mailList);
+			}
+			receiversMap=Collections.unmodifiableMap(receiversMap);
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	}
 	
 	@Override
