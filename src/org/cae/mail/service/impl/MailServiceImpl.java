@@ -15,6 +15,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.cae.mail.common.IConstant;
+import org.cae.mail.common.Util;
 import org.cae.mail.entity.Mail;
 import org.cae.mail.entity.MailMessage;
 import org.cae.mail.service.IMailService;
@@ -42,28 +43,31 @@ public class MailServiceImpl implements IMailService {
 	public void init(){
 		receiversMap=new HashMap<Integer,List<String>>();
 		SAXReader reader = new SAXReader(); 
-	if(validateXML("src/mail.xml", "src/schema.xsd")){
-		try{
-			Document document=reader.read(new File("src/mail.xml"));
-			List<Element> mail =document.getRootElement().element("mails").elements("mail");
-			for(Iterator<Element> iterator=mail.iterator();iterator.hasNext();){
-				Integer type;
-				Element element =(Element) iterator.next();
-				List<String> mailList=new ArrayList<String>();
-				Attribute attribute=element.attribute("type");
-				type=Integer.valueOf(attribute.getData().toString());
-				List<Element> address =element.elements("address");
-				for(Iterator<Element> iterator2=address.iterator();iterator2.hasNext();){
-					element=(Element)iterator2.next();
-					mailList.add(element.getText());
+		File[] xmlFiles=Util.getXMLFile("src/");
+			for(int i=0;i<xmlFiles.length;i++){
+				if(validateXML(xmlFiles[i].getPath(), "src/schema.xsd")){
+					try{
+						Document document=reader.read(xmlFiles[i]);
+						List<Element> mail =document.getRootElement().element("mails").elements("mail");
+						for(Iterator<Element> iterator=mail.iterator();iterator.hasNext();){
+							Integer type;
+							Element element =(Element) iterator.next();
+							List<String> mailList=new ArrayList<String>();
+							Attribute attribute=element.attribute("type");
+							type=Integer.valueOf(attribute.getData().toString());
+							List<Element> address =element.elements("address");
+							for(Iterator<Element> iterator2=address.iterator();iterator2.hasNext();){
+								element=(Element)iterator2.next();
+								mailList.add(element.getText());
+							}	
+								receiversMap.put(type, mailList);
+						}
+					}catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-				receiversMap.put(type, mailList);
 			}
 			receiversMap=Collections.unmodifiableMap(receiversMap);
-		}catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 	}
 	
 	@Override

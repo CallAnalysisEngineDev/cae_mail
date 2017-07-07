@@ -1,6 +1,7 @@
 package org.cae.mail.common;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -166,4 +167,27 @@ public class Util {
             return isSuccessed;
         } 
     } 
+	/**
+	 * 
+	 * @param xmlDir XML文件所在文件夹的路径
+	 * @return	XML文件数组
+	 */
+	public static File[] getXMLFile(String xmlDir){
+		File file=new File(xmlDir);
+		if(!file.exists()){
+			file.mkdir();
+		}
+		File[] xmlFiles=new File(xmlDir).listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File pathname) {
+				String filename = pathname.getName().toLowerCase();
+				if(filename.endsWith(".xml")){
+					return true;
+				}else{
+					return false;
+				}
+			}
+		});
+		return xmlFiles;
+	}
 }
