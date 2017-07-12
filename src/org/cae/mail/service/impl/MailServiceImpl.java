@@ -44,9 +44,9 @@ public class MailServiceImpl implements IMailService {
 	public void init(){
 		receiversMap=new HashMap<Integer,List<String>>();
 		SAXReader reader = new SAXReader(); 
-		File[] xmlFiles=Util.getXMLFile(this.getClass().getClassLoader().getResource("/").getPath());
+		File[] xmlFiles=Util.getXMLFile(this.getClass().getClassLoader().getResource("/").getPath().replaceFirst("/", ""));
 			for(int i=0;i<xmlFiles.length;i++){
-				if(validateXML(xmlFiles[i].getPath(), this.getClass().getClassLoader().getResource("/").getPath()+"schema.xsd")){
+				if(validateXML(xmlFiles[i].getPath(), this.getClass().getClassLoader().getResource("/").getPath().replaceFirst("/", "")+"schema.xsd")){
 					try{
 						Document document=reader.read(xmlFiles[i]);
 						List<Element> mail =document.getRootElement().element("mails").elements("mail");
@@ -67,7 +67,6 @@ public class MailServiceImpl implements IMailService {
 					}
 				}
 			}
-			System.out.println(receiversMap);
 			receiversMap=Collections.unmodifiableMap(receiversMap);
 	}
 	
