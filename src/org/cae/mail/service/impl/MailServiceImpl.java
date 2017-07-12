@@ -14,7 +14,6 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.cae.mail.common.IConstant;
 import org.cae.mail.common.Util;
 import org.cae.mail.entity.Mail;
 import org.cae.mail.entity.MailMessage;
@@ -26,6 +25,7 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import static org.cae.mail.common.Util.validateXML;
@@ -40,12 +40,13 @@ public class MailServiceImpl implements IMailService {
 	
 	//解析XML配置实现热部署功能
 	@PostConstruct
+	@Scheduled(cron="* * * * * * ")
 	public void init(){
 		receiversMap=new HashMap<Integer,List<String>>();
 		SAXReader reader = new SAXReader(); 
-		File[] xmlFiles=Util.getXMLFile("src/");
+		File[] xmlFiles=Util.getXMLFile("D:\\Java-web项目区\\cae_mail\\src");
 			for(int i=0;i<xmlFiles.length;i++){
-				if(validateXML(xmlFiles[i].getPath(), "src/schema.xsd")){
+				if(validateXML(xmlFiles[i].getPath(), "D:\\Java-web项目区\\cae_mail\\src\\schema.xsd")){
 					try{
 						Document document=reader.read(xmlFiles[i]);
 						List<Element> mail =document.getRootElement().element("mails").elements("mail");
@@ -63,7 +64,6 @@ public class MailServiceImpl implements IMailService {
 								receiversMap.put(type, mailList);
 						}
 					}catch (Exception e) {
-						e.printStackTrace();
 					}
 				}
 			}
