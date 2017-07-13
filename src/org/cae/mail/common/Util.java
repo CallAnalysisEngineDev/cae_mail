@@ -7,19 +7,23 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.SAXValidator;
 import org.dom4j.util.XMLErrorHandler;
+import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -137,36 +141,19 @@ public class Util {
 	 * @return 返回校验成功的标志
 	 */
 	public static boolean validateXML(String xmlFilePath,String xsdFilePath) { 
-    	boolean isSuccessed=false;
-		try { 
-            XMLErrorHandler errorHandler = new XMLErrorHandler(); 
-            SAXParserFactory factory = SAXParserFactory.newInstance(); 
-            factory.setValidating(true); 
-            factory.setNamespaceAware(true); 
-            SAXParser parser = factory.newSAXParser(); 
-            SAXReader xmlReader = new SAXReader(); 
-            Document xmlDocument = (Document) xmlReader.read(new File(xmlFilePath)); 
-            parser.setProperty( 
-                    "http://java.sun.com/xml/jaxp/properties/schemaLanguage", 
-                    "http://www.w3.org/2001/XMLSchema"); 
-            parser.setProperty( 
-                    "http://java.sun.com/xml/jaxp/properties/schemaSource", 
-                    "file:" + xsdFilePath); 
-            SAXValidator validator = new SAXValidator(parser.getXMLReader());  
-            validator.setErrorHandler(errorHandler); 
-            validator.validate(xmlDocument); 
-            if (errorHandler.getErrors().hasContent()) { 
-            	System.err.println(errorHandler.getErrors().toString());
-               isSuccessed=false;
-            } else { 
-                isSuccessed=true;
-            } 
-            return isSuccessed;
-        } catch (Exception ex) { 
-        	System.err.println(ex.getMessage());
-            return isSuccessed;
-        } 
-    } 
+			  long startTime = System.currentTimeMillis(); 
+		        try {
+		            SchemaFactory factory = 
+		                    SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		            Schema schema = factory.newSchema(new File(xsdFilePath));
+		            Validator validator = schema.newValidator();
+		            validator.validate(new StreamSource(new File(xmlFilePath)));
+		        } catch (IOException | SAXException e) {
+		            System.out.println("Exception: "+e.getMessage()); 
+		            return false;
+		        }
+		        return true;
+		    }
 	/**
 	 * 
 	 * @param xmlDir XML文件所在文件夹的路径
