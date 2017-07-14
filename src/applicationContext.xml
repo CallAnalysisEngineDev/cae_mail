@@ -11,6 +11,7 @@
 	http://www.springframework.org/schema/task  
 	http://www.springframework.org/schema/task/spring-task-4.2.xsd ">
     
+    <context:component-scan base-package="org.cae.mail.common"/>
     <context:component-scan base-package="org.cae.mail.service.impl"/>
     <context:component-scan base-package="org.cae.mail.controller.impl"/>
     

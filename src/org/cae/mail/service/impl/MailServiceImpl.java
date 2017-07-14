@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.servlet.ServletContext;
 
 import org.cae.mail.common.Util;
 import org.cae.mail.entity.Mail;
@@ -28,10 +29,13 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+
 import static org.cae.mail.common.Util.validateXML;
 @Service("mailService")
 public class MailServiceImpl implements IMailService {
 
+	@Autowired
+	private ServletContext servletContext;
 	@Autowired
 	private JavaMailSenderImpl mailSender;
 	@Autowired
