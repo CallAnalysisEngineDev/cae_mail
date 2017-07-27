@@ -14,16 +14,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component("mailController")
-public class MailControllerImpl implements MessageListener,IMailController {
+public class MailControllerImpl implements MessageListener, IMailController {
 
 	@Autowired
 	private IMailService mailService;
-	
+
 	@Override
 	public void onMessage(Message message) {
 		try {
-			TextMessage textMessage=(TextMessage) message;
-			MailMessage mailMessage=toObject(textMessage.getText(), MailMessage.class);
+			TextMessage textMessage = (TextMessage) message;
+			MailMessage mailMessage = toObject(textMessage.getText(),
+					MailMessage.class);
 			sendMailController(mailMessage);
 		} catch (JMSException e) {
 			e.printStackTrace();

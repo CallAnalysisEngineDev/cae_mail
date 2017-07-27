@@ -11,13 +11,14 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class MailTest {
 
 	private IMailService service;
-	
+
 	@Before
-	public void init(){
-		ApplicationContext ctx=new ClassPathXmlApplicationContext("applicationContext.xml");
-		service=(IMailService) ctx.getBean("mailService");
+	public void init() {
+		ApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"applicationContext.xml");
+		service = (IMailService) ctx.getBean("mailService");
 	}
-	
+
 	@Test
 	public void test() {
 		service.sendMailService(null);
