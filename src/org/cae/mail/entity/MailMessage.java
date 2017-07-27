@@ -14,6 +14,8 @@ public class MailMessage {
 	}
 
 	public Mail getMail() {
+		if(mail==null)
+			return new Mail();
 		return mail;
 	}
 
