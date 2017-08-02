@@ -17,7 +17,9 @@ import javax.servlet.ServletContext;
 
 import static org.cae.mail.common.Util.fileReader;
 import static org.cae.mail.common.Util.getJsonFile;
+import static org.cae.mail.common.Util.isEmail;
 
+import org.apache.log4j.Logger;
 import org.cae.mail.entity.Mail;
 import org.cae.mail.entity.MailMessage;
 import org.cae.mail.entity.MailType;
@@ -36,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service("mailService")
 public class MailServiceImpl implements IMailService {
 
+	private Logger logger = Logger.getLogger(getClass());
 	@Autowired
 	private ServletContext servletContext;
 	@Autowired
@@ -48,40 +51,89 @@ public class MailServiceImpl implements IMailService {
 	@PostConstruct
 	@Scheduled(cron = "* * * * * * ")
 	public void init() {
-		long startTime = System.currentTimeMillis();
 		receiversMap = new HashMap<MailType, List<String>>();
 		ObjectMapper mapper = new ObjectMapper();
-		File[] jsonFile = getJsonFile(
-				this.getClass().getClassLoader().getResource("/").getPath().replaceFirst("/", ""));
+		File[] jsonFiles = getJsonFile(this.getClass().getClassLoader()
+				.getResource("/").getPath().replaceFirst("/", ""));
+		if (jsonFiles.length == 0) {
+			logger.info("当前没有mail配置文件");
+			return;
+		}
 		try {
-			for (int i = 0; i < jsonFile.length; i++) {
-				String json = fileReader(jsonFile[i]);
-
+			for (File jsonFile : jsonFiles) {
+				String json = fileReader(jsonFile);
 				JsonNode node = mapper.readTree(json);
-				JsonNode caeMailNode = node.get("cae-mail");
-				for (int j = 0; j < caeMailNode.size(); j++) {
-					String temp = caeMailNode.get(j).get("type").toString();
-					temp = temp.substring(1, temp.length() - 1);
-					if (!MailType.contains(temp)) {
+				JsonNode caeMailNodes = node.get("cae-mail");
+				if (caeMailNodes == null) {
+					logger.error("没有找到<cae-mail>节点",
+							new IllegalArgumentException("没有找到<cae-mail>节点"));
+					continue;
+				}
+
+				for (int i = 0; i < caeMailNodes.size(); i++) {
+					JsonNode caeMailNode = caeMailNodes.get(i).get("type");
+					if (caeMailNode == null) {
+						logger.error("第" + (i + 1) + "个<cae-mail>节点中"
+								+ "没有找到<type>节点", new IllegalArgumentException(
+								"第" + (i + 1) + "个<cae-mail>节点中"
+										+ "没有找到<type>节点"));
+						break;
+					}
+
+					String caeMail = caeMailNode.toString();
+					caeMail = caeMail.substring(1, caeMail.length() - 1);
+					if (!MailType.contains(caeMail)) {
+						logger.error("没有" + caeMail + "类型的收件人列表",
+								new IllegalArgumentException("没有" + caeMail
+										+ "类型的收件人列表"));
 						continue;
 					}
-					MailType type = MailType.valueOf(temp);
-					JsonNode mailListNode = caeMailNode.get(j).get("mailList");
+					MailType type = MailType.valueOf(caeMail);
+					JsonNode mailListNode = caeMailNodes.get(i).get("mailList");
+					if (mailListNode == null) {
+						logger.error(
+								"第" + (i + 1) + "个<cae-mail>节点中"
+										+ "没有找到<mailList>节点",
+								new IllegalArgumentException("第" + (i + 1)
+										+ "个<cae-mail>节点中" + "没有找到<mailList>节点"));
+						break;
+					}
+
+					String mailAddress = "";
+					JsonNode mailAdressNode = null;
 					ArrayList<String> mailList = new ArrayList<String>();
-					for (int k = 0; k < mailListNode.size(); k++) {
-						temp = mailListNode.get(k).get("address").toString();
-						temp = temp.substring(1, temp.length() - 1);
-						mailList.add(temp);
+					for (int j = 0; j < mailListNode.size(); j++) {
+						mailAdressNode = mailListNode.get(j).get("address");
+						if (mailAdressNode == null) {
+							logger.error("第" + (i + 1) + "个<mailList>节点中"
+									+ "没有找到<address>节点",
+									new IllegalArgumentException("第" + (j + 1)
+											+ "个<mailList>节点中"
+											+ "没有找到<address>节点"));
+							break;
+						}
+						mailAddress = mailAdressNode.toString();
+						mailAddress = mailAddress.substring(1,
+								mailAddress.length() - 1);
+						if (!isEmail(mailAddress)) {
+							logger.error("第" + (i + 1) + "个<cae-mail>节点中的"
+									+ "第" + (j + 1) + "个<address>的电子邮件不合法",
+									new IllegalArgumentException("第" + (i + 1)
+											+ "个<cae-mail>节点中的" + "第" + (j + 1)
+											+ "个<address>的电子邮件不合法"));
+							break;
+						}
+						mailList.add(mailAddress);
 					}
 					receiversMap.put(type, mailList);
 				}
 			}
 			receiversMap = Collections.unmodifiableMap(receiversMap);
-			long endTime = System.currentTimeMillis();
-			System.out.println("程序运行时间：" + (endTime - startTime) + "ms " + "map内容是" + receiversMap);
 		} catch (JsonProcessingException e) {
+			logger.error(e.getMessage(), e);
 			e.printStackTrace();
 		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
 			e.printStackTrace();
 		}
 	}
@@ -112,8 +164,10 @@ public class MailServiceImpl implements IMailService {
 				mimeMessageHelper = new MimeMessageHelper(mimeMessage, true,
 						"UTF-8");
 				mimeMessageHelper.setTo(to);
-				String nick = javax.mail.internet.MimeUtility.encodeText("cae项目组");
-				mimeMessageHelper.setFrom(new InternetAddress(nick + "<kuma_loveliver@163.com>"));
+				String nick = javax.mail.internet.MimeUtility
+						.encodeText("cae项目组");
+				mimeMessageHelper.setFrom(new InternetAddress(nick
+						+ "<kuma_loveliver@163.com>"));
 				mimeMessageHelper.setSubject(mail.getTitle());
 				mimeMessageHelper.setText(mail.getContent());
 				mailSender.send(mimeMessage);

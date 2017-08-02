@@ -11,14 +11,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Util {
 
 	private static SimpleDateFormat dateSdf = new SimpleDateFormat("yyyy-MM-dd");
-	private static SimpleDateFormat timeSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static SimpleDateFormat timeSdf = new SimpleDateFormat(
+			"yyyy-MM-dd HH:mm:ss");
 
 	public static String toJson(Object target) {
 		ObjectMapper mapper = new ObjectMapper();
@@ -147,7 +151,8 @@ public class Util {
 	 */
 	public static String fileReader(File file) {
 		try {
-			BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(
+					file));
 			StringBuffer buffer = new StringBuffer();
 			String s = null;
 			while ((s = bufferedReader.readLine()) != null) {
@@ -159,5 +164,18 @@ public class Util {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public static boolean isEmail(String address) {
+		boolean flag = false;
+		try {
+			String check = "^([a-z0-9A-Z]+[-|_|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$";
+			Pattern regex = Pattern.compile(check);
+			Matcher matcher = regex.matcher(address);
+			flag = matcher.matches();
+		} catch (Exception e) {
+			flag = false;
+		}
+		return flag;
 	}
 }
