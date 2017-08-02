@@ -153,10 +153,9 @@ public class Util {
 	 * @param file
 	 *            文件
 	 * @return 文件文本
-	 * @throws IOException
-	 * @throws FileNotFoundException
 	 */
-	public static String fileReader(File file) throws IOException, FileNotFoundException {
+	public static String fileReader(File file){
+		try{
 		BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
 		StringBuffer buffer = new StringBuffer();
 		String s = null;
@@ -165,5 +164,9 @@ public class Util {
 		}
 		bufferedReader.close();
 		return buffer.toString();
+		}catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
