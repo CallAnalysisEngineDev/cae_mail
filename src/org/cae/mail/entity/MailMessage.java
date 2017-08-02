@@ -2,14 +2,14 @@ package org.cae.mail.entity;
 
 public class MailMessage {
 
-	private Enum<MailType> type;
+	private MailType type;
 	private Mail mail;
 
-	public Enum<MailType> getType() {
+	public MailType getType() {
 		return type;
 	}
 
-	public void setType(Enum<MailType> type) {
+	public void setType(MailType type) {
 		this.type = type;
 	}
 
