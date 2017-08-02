@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,15 +22,16 @@ import org.cae.mail.entity.Mail;
 import org.cae.mail.entity.MailMessage;
 import org.cae.mail.entity.MailType;
 import org.cae.mail.service.IMailService;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service("mailService")
 public class MailServiceImpl implements IMailService {
@@ -40,34 +42,47 @@ public class MailServiceImpl implements IMailService {
 	private JavaMailSenderImpl mailSender;
 	@Autowired
 	private ThreadPoolTaskExecutor threadPool;
-	private Map<Enum<MailType>, List<String>> receiversMap;
+	private Map<MailType, List<String>> receiversMap;
 
 	// 解析XML配置实现热部署功能
 	@PostConstruct
 	@Scheduled(cron = "* * * * * * ")
 	public void init() {
-		receiversMap = new HashMap<Enum<MailType>, List<String>>();
-		File[] jsonFileArray = getJsonFile(
-				this.getClass().getClassLoader().getResource("/").getPath().replaceFirst("/", ""));
-		for (int i = 0; i < jsonFileArray.length; i++) {
-			try {
-				JSONObject mailJSON = new JSONObject(fileReader(jsonFileArray[i]));
-				JSONArray mailArray = mailJSON.getJSONArray("cae-mail");
-				for (int j = 0; j < mailArray.length(); j++) {
+		long startTime = System.currentTimeMillis();
+		receiversMap = new HashMap<MailType, List<String>>();
+		ObjectMapper mapper = new ObjectMapper();
+		File[] jsonFile = getJsonFile(this.getClass().getClassLoader().getResource("/").getPath().replaceFirst("/", ""));
+	try{	
+		for (int i = 0; i < jsonFile.length; i++) {
+			String json = fileReader(jsonFile[i]);
+			
+				JsonNode node = mapper.readTree(json);
+				JsonNode caeMailNode = node.get("cae-mail");
+				for (int j = 0; j < caeMailNode.size(); j++) {
+					String temp = caeMailNode.get(j).get("type").toString();
+					temp = temp.substring(1, temp.length() - 1);
+					if(!MailType.contains(temp)){
+						continue;
+					}
+					MailType type = MailType.valueOf(temp);
+					JsonNode mailListNode = caeMailNode.get(j).get("mailList");
 					ArrayList<String> mailList = new ArrayList<String>();
-					JSONObject mail = mailArray.getJSONObject(j);
-					JSONArray mailListArray = mail.getJSONArray("mailList");
-					Enum<MailType> type = MailType.valueOf(mail.getString("type"));
-					for (int k = 0; k < mailListArray.length(); k++) {
-						String address = mailListArray.getJSONObject(k).getString("address");
-						mailList.add(address);
+					for (int k = 0; k < mailListNode.size(); k++) {
+						temp = mailListNode.get(k).get("address").toString();
+						temp = temp.substring(1, temp.length() - 1);
+						mailList.add(temp);
 					}
 					receiversMap.put(type, mailList);
 				}
-			} catch (IOException | JSONException | EnumConstantNotPresentException e) {
-				e.printStackTrace();
-			}
 		}
+		receiversMap=Collections.unmodifiableMap(receiversMap);
+		long endTime = System.currentTimeMillis();
+		System.out.println("程序运行时间："+(endTime-startTime)+"ms "+"map内容是"+receiversMap);
+	}catch (JsonProcessingException e) {
+		e.printStackTrace();
+	}catch (IOException e) {
+		e.printStackTrace();
+	}
 	}
 
 	@Override
