@@ -1,7 +1,9 @@
 package org.cae.mail.common;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -11,14 +13,12 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.log4j.Logger;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Util {
 
 	private static SimpleDateFormat dateSdf = new SimpleDateFormat("yyyy-MM-dd");
-	private static SimpleDateFormat timeSdf = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss");
+	private static SimpleDateFormat timeSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	public static String toJson(Object target) {
 		ObjectMapper mapper = new ObjectMapper();
@@ -104,15 +104,6 @@ public class Util {
 		return result;
 	}
 
-	public static void logStackTrace(Logger logger,
-			StackTraceElement[] stackTrace) {
-		String stackInfo = "";
-		for (StackTraceElement element : stackTrace) {
-			stackInfo += element + "\n";
-		}
-		logger.error(stackInfo);
-	}
-
 	public static String md5(String str) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -125,26 +116,48 @@ public class Util {
 
 	/**
 	 * 
-	 * @param xmlDir
-	 *            XML文件所在文件夹的路径
-	 * @return XML文件数组
+	 * @param jsonDir
+	 *            JSON文件所在的目录
+	 * @return JSON文件数组
 	 */
-	public static File[] getXMLFile(String xmlDir) {
-		File file = new File(xmlDir);
+	public static File[] getJsonFile(String jsonDir) {
+		File file = new File(jsonDir);
 		if (!file.exists()) {
 			file.mkdir();
 		}
-		File[] xmlFiles = new File(xmlDir).listFiles(new FileFilter() {
+		File[] jsonFiles = new File(jsonDir).listFiles(new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
 				String filename = pathname.getName().toLowerCase();
-				if (filename.endsWith(".xml")) {
+				if (filename.endsWith(".json")) {
 					return true;
 				} else {
 					return false;
 				}
 			}
 		});
-		return xmlFiles;
+		return jsonFiles;
+	}
+
+	/**
+	 * 
+	 * @param file
+	 *            文件
+	 * @return 文件文本
+	 */
+	public static String fileReader(File file) {
+		try {
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+			StringBuffer buffer = new StringBuffer();
+			String s = null;
+			while ((s = bufferedReader.readLine()) != null) {
+				buffer.append(s);
+			}
+			bufferedReader.close();
+			return buffer.toString();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
