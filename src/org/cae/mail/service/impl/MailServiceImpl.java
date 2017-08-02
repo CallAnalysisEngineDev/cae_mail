@@ -51,17 +51,18 @@ public class MailServiceImpl implements IMailService {
 		long startTime = System.currentTimeMillis();
 		receiversMap = new HashMap<MailType, List<String>>();
 		ObjectMapper mapper = new ObjectMapper();
-		File[] jsonFile = getJsonFile(this.getClass().getClassLoader().getResource("/").getPath().replaceFirst("/", ""));
-	try{	
-		for (int i = 0; i < jsonFile.length; i++) {
-			String json = fileReader(jsonFile[i]);
-			
+		File[] jsonFile = getJsonFile(
+				this.getClass().getClassLoader().getResource("/").getPath().replaceFirst("/", ""));
+		try {
+			for (int i = 0; i < jsonFile.length; i++) {
+				String json = fileReader(jsonFile[i]);
+
 				JsonNode node = mapper.readTree(json);
 				JsonNode caeMailNode = node.get("cae-mail");
 				for (int j = 0; j < caeMailNode.size(); j++) {
 					String temp = caeMailNode.get(j).get("type").toString();
 					temp = temp.substring(1, temp.length() - 1);
-					if(!MailType.contains(temp)){
+					if (!MailType.contains(temp)) {
 						continue;
 					}
 					MailType type = MailType.valueOf(temp);
@@ -74,15 +75,15 @@ public class MailServiceImpl implements IMailService {
 					}
 					receiversMap.put(type, mailList);
 				}
+			}
+			receiversMap = Collections.unmodifiableMap(receiversMap);
+			long endTime = System.currentTimeMillis();
+			System.out.println("程序运行时间：" + (endTime - startTime) + "ms " + "map内容是" + receiversMap);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		receiversMap=Collections.unmodifiableMap(receiversMap);
-		long endTime = System.currentTimeMillis();
-		System.out.println("程序运行时间："+(endTime-startTime)+"ms "+"map内容是"+receiversMap);
-	}catch (JsonProcessingException e) {
-		e.printStackTrace();
-	}catch (IOException e) {
-		e.printStackTrace();
-	}
 	}
 
 	@Override

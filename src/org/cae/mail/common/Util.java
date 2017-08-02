@@ -153,17 +153,17 @@ public class Util {
 	 *            文件
 	 * @return 文件文本
 	 */
-	public static String fileReader(File file){
-		try{
-		BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-		StringBuffer buffer = new StringBuffer();
-		String s = null;
-		while ((s = bufferedReader.readLine()) != null) {
-			buffer.append(s);
-		}
-		bufferedReader.close();
-		return buffer.toString();
-		}catch (IOException e) {
+	public static String fileReader(File file) {
+		try {
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+			StringBuffer buffer = new StringBuffer();
+			String s = null;
+			while ((s = bufferedReader.readLine()) != null) {
+				buffer.append(s);
+			}
+			bufferedReader.close();
+			return buffer.toString();
+		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
