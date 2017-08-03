@@ -116,9 +116,11 @@ public class MailServiceImpl implements IMailService {
 						mailAddress = mailAddress.substring(1,
 								mailAddress.length() - 1);
 						if (!isEmail(mailAddress)) {
-							logger.error("第" + (i + 1) + "个<address>的电子邮件不合法",
-									new IllegalArgumentException("第" + (j + 1)
-											+ "个<adress>的电子邮件不合法"));
+							logger.error("第" + (i + 1) + "个<cae-mail>节点中的"
+									+ "第" + (j + 1) + "个<address>的电子邮件不合法",
+									new IllegalArgumentException("第" + (i + 1)
+											+ "个<cae-mail>节点中的" + "第" + (j + 1)
+											+ "个<address>的电子邮件不合法"));
 							break;
 						}
 						mailList.add(mailAddress);
