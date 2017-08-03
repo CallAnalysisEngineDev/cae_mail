@@ -25,8 +25,9 @@ public class Util {
 	private static SimpleDateFormat timeSdf = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss");
 
-	//私有构造器防止外部创建新的Util对象
-	private Util(){}
+	// 私有构造器防止外部创建新的Util对象
+	private Util() {
+	}
 
 	public static String toJson(Object target) {
 		ObjectMapper mapper = new ObjectMapper();
