@@ -7,6 +7,7 @@ import javax.jms.TextMessage;
 
 import static org.cae.mail.common.Util.toObject;
 
+import org.apache.log4j.Logger;
 import org.cae.mail.controller.IMailController;
 import org.cae.mail.entity.MailMessage;
 import org.cae.mail.service.IMailService;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 @Component("mailController")
 public class MailControllerImpl implements MessageListener, IMailController {
 
+	private Logger logger = Logger.getLogger(getClass());
 	@Autowired
 	private IMailService mailService;
 
@@ -27,7 +29,7 @@ public class MailControllerImpl implements MessageListener, IMailController {
 					MailMessage.class);
 			sendMailController(mailMessage);
 		} catch (JMSException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 	}
 

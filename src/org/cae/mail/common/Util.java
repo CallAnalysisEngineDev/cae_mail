@@ -20,18 +20,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Util {
 
+	private static Logger logger = Logger.getLogger(Util.class);
 	private static SimpleDateFormat dateSdf = new SimpleDateFormat("yyyy-MM-dd");
 	private static SimpleDateFormat timeSdf = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss");
+
+	//私有构造器防止外部创建新的Util对象
+	private Util(){}
 
 	public static String toJson(Object target) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			return mapper.writeValueAsString(target);
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.error(ex.getMessage(), ex);
 		}
-		return null;
+		return "";
 	}
 
 	public static <T> T toObject(String json, Class<T> clazz) {
@@ -39,9 +43,9 @@ public class Util {
 		try {
 			return mapper.readValue(json, clazz);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
-		return null;
+		return (T) new Object();
 	}
 
 	public static String date2String(Date date) {
@@ -161,8 +165,8 @@ public class Util {
 			bufferedReader.close();
 			return buffer.toString();
 		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
+			logger.error(e.getMessage(), e);
+			return "";
 		}
 	}
 

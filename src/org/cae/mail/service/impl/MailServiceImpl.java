@@ -131,10 +131,8 @@ public class MailServiceImpl implements IMailService {
 			receiversMap = Collections.unmodifiableMap(receiversMap);
 		} catch (JsonProcessingException e) {
 			logger.error(e.getMessage(), e);
-			e.printStackTrace();
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
-			e.printStackTrace();
 		}
 	}
 
@@ -171,8 +169,10 @@ public class MailServiceImpl implements IMailService {
 				mimeMessageHelper.setSubject(mail.getTitle());
 				mimeMessageHelper.setText(mail.getContent());
 				mailSender.send(mimeMessage);
-			} catch (MessagingException | UnsupportedEncodingException e) {
-				e.printStackTrace();
+			} catch (MessagingException e) {
+				logger.error(e.getMessage(), e);
+			} catch (UnsupportedEncodingException e) {
+				logger.error(e.getMessage(), e);
 			}
 		}
 
