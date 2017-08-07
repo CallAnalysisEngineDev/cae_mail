@@ -1,24 +1,16 @@
- {
-  "cae-mail": [
+{
+    "cae-mail":[
         {
-            "type": "ANDROID_ADVICE",
-            "mailList": [
+            "type":"NORMAL_ADVICE",
+            "mailList":[
                 {
-                    "address": "664376661@163.com"
+                    "address":"kuma_loveliver@163.com"
                 },
                 {
-                    "address": "asdasd"
+                    "address":"callanalysisengine@163.com"
                 },
                 {
-                    "address": "200797912@qq.com"
-                }
-            ]
-        },
-        {
-            "type": "JAVA_ADVICE",
-            "mailList": [
-                {
-                    "address": "lq664376661@163.com"
+                    "address":"lq664376661@163.com"
                 }
             ]
         }
