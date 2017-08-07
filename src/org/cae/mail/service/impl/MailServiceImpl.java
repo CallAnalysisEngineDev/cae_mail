@@ -46,12 +46,12 @@ public class MailServiceImpl implements IMailService {
 	@Autowired
 	private ThreadPoolTaskExecutor threadPool;
 	private Map<MailType, List<String>> receiversMap;
+	private static Map<String, Long> fileLastModifyMap = new HashMap<>();
 
 	// 解析XML配置实现热部署功能
 	@PostConstruct
 	@Scheduled(cron = "* * * * * * ")
 	public void init() {
-		receiversMap = new HashMap<MailType, List<String>>();
 		ObjectMapper mapper = new ObjectMapper();
 		File[] jsonFiles = getJsonFile(this.getClass().getClassLoader()
 				.getResource("/").getPath().replaceFirst("/", ""));
@@ -61,21 +61,34 @@ public class MailServiceImpl implements IMailService {
 		}
 		try {
 			for (File jsonFile : jsonFiles) {
+				if (fileLastModifyMap.get(jsonFile.getName()) != null) {
+					if (fileLastModifyMap.get(jsonFile.getName()).equals(
+							jsonFile.lastModified())) {
+						continue;
+					}
+				} else {
+					fileLastModifyMap.put(jsonFile.getName(),
+							jsonFile.lastModified());
+				}
+
 				String json = fileReader(jsonFile);
 				JsonNode node = mapper.readTree(json);
 				JsonNode caeMailNodes = node.get("cae-mail");
 				if (caeMailNodes == null) {
-					logger.error("没有找到<cae-mail>节点",
-							new IllegalArgumentException("没有找到<cae-mail>节点"));
+					logger.error(jsonFile.getName() + "文件中没有找到<cae-mail>节点",
+							new IllegalArgumentException(jsonFile.getName()
+									+ "文件中没有找到<cae-mail>节点"));
 					continue;
 				}
 
+				receiversMap = new HashMap<MailType, List<String>>();
 				for (int i = 0; i < caeMailNodes.size(); i++) {
 					JsonNode caeMailNode = caeMailNodes.get(i).get("type");
 					if (caeMailNode == null) {
-						logger.error("第" + (i + 1) + "个<cae-mail>节点中"
-								+ "没有找到<type>节点", new IllegalArgumentException(
-								"第" + (i + 1) + "个<cae-mail>节点中"
+						logger.error(jsonFile.getName() + "第" + (i + 1)
+								+ "个<cae-mail>节点中" + "没有找到<type>节点",
+								new IllegalArgumentException(jsonFile.getName()
+										+ "第" + (i + 1) + "个<cae-mail>节点中"
 										+ "没有找到<type>节点"));
 						break;
 					}
@@ -83,19 +96,20 @@ public class MailServiceImpl implements IMailService {
 					String caeMail = caeMailNode.toString();
 					caeMail = caeMail.substring(1, caeMail.length() - 1);
 					if (!MailType.contains(caeMail)) {
-						logger.error("没有" + caeMail + "类型的收件人列表",
-								new IllegalArgumentException("没有" + caeMail
+						logger.error(jsonFile.getName() + "中没有" + caeMail
+								+ "类型的收件人列表", new IllegalArgumentException(
+								jsonFile.getName() + "中没有" + caeMail
 										+ "类型的收件人列表"));
 						continue;
 					}
 					MailType type = MailType.valueOf(caeMail);
 					JsonNode mailListNode = caeMailNodes.get(i).get("mailList");
 					if (mailListNode == null) {
-						logger.error(
-								"第" + (i + 1) + "个<cae-mail>节点中"
-										+ "没有找到<mailList>节点",
-								new IllegalArgumentException("第" + (i + 1)
-										+ "个<cae-mail>节点中" + "没有找到<mailList>节点"));
+						logger.error(jsonFile.getName() + "第" + (i + 1)
+								+ "个<cae-mail>节点中" + "没有找到<mailList>节点",
+								new IllegalArgumentException(jsonFile.getName()
+										+ "第" + (i + 1) + "个<cae-mail>节点中"
+										+ "没有找到<mailList>节点"));
 						break;
 					}
 
@@ -105,9 +119,14 @@ public class MailServiceImpl implements IMailService {
 					for (int j = 0; j < mailListNode.size(); j++) {
 						mailAdressNode = mailListNode.get(j).get("address");
 						if (mailAdressNode == null) {
-							logger.error("第" + (i + 1) + "个<mailList>节点中"
-									+ "没有找到<address>节点",
-									new IllegalArgumentException("第" + (j + 1)
+							logger.error(
+									jsonFile.getName() + "第" + (i + 1)
+											+ "个<mailList>节点中"
+											+ "没有找到<address>节点",
+									new IllegalArgumentException(jsonFile
+											.getName()
+											+ "第"
+											+ (j + 1)
 											+ "个<mailList>节点中"
 											+ "没有找到<address>节点"));
 							break;
@@ -116,10 +135,17 @@ public class MailServiceImpl implements IMailService {
 						mailAddress = mailAddress.substring(1,
 								mailAddress.length() - 1);
 						if (!isEmail(mailAddress)) {
-							logger.error("第" + (i + 1) + "个<cae-mail>节点中的"
-									+ "第" + (j + 1) + "个<address>的电子邮件不合法",
-									new IllegalArgumentException("第" + (i + 1)
+							logger.error(
+									jsonFile.getName() + "第" + (i + 1)
 											+ "个<cae-mail>节点中的" + "第" + (j + 1)
+											+ "个<address>的电子邮件不合法",
+									new IllegalArgumentException(jsonFile
+											.getName()
+											+ "第"
+											+ (i + 1)
+											+ "个<cae-mail>节点中的"
+											+ "第"
+											+ (j + 1)
 											+ "个<address>的电子邮件不合法"));
 							break;
 						}
