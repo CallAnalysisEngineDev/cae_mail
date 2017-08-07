@@ -45,14 +45,15 @@ public class MailServiceImpl implements IMailService {
 	private JavaMailSenderImpl mailSender;
 	@Autowired
 	private ThreadPoolTaskExecutor threadPool;
+	// 邮件收件人列表和邮件类型的映射表
 	private Map<MailType, List<String>> receiversMap;
+	// 文件最后修改时间和文件名的映射表
 	private static Map<String, Long> fileLastModifyMap = new HashMap<>();
 
 	// 解析XML配置实现热部署功能
 	@PostConstruct
 	@Scheduled(cron = "* * * * * * ")
 	public void init() {
-		ObjectMapper mapper = new ObjectMapper();
 		File[] jsonFiles = getJsonFile(this.getClass().getClassLoader()
 				.getResource("/").getPath().replaceFirst("/", ""));
 		if (jsonFiles.length == 0) {
@@ -62,15 +63,18 @@ public class MailServiceImpl implements IMailService {
 		try {
 			for (File jsonFile : jsonFiles) {
 				if (fileLastModifyMap.get(jsonFile.getName()) != null) {
+					// 如果一个文件的最后修改时间和之前的一样,那就不解析,直接跳过
 					if (fileLastModifyMap.get(jsonFile.getName()).equals(
 							jsonFile.lastModified())) {
 						continue;
 					}
 				} else {
+					// 如果fileLastModifyMap中没有文件的最后修改时间,说明该文件是新的文件,将文件的最后修改时间放入fileLastModifyMap中
 					fileLastModifyMap.put(jsonFile.getName(),
 							jsonFile.lastModified());
 				}
 
+				ObjectMapper mapper = new ObjectMapper();
 				String json = fileReader(jsonFile);
 				JsonNode node = mapper.readTree(json);
 				JsonNode caeMailNodes = node.get("cae-mail");
