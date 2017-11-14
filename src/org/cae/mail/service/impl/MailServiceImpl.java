@@ -13,7 +13,6 @@ import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.servlet.ServletContext;
 
 import static org.cae.mail.common.Util.fileReader;
 import static org.cae.mail.common.Util.getJsonFile;
@@ -40,8 +39,6 @@ public class MailServiceImpl implements IMailService {
 
 	private Logger logger = Logger.getLogger(getClass());
 	@Autowired
-	private ServletContext servletContext;
-	@Autowired
 	private JavaMailSenderImpl mailSender;
 	@Autowired
 	private ThreadPoolTaskExecutor threadPool;
@@ -54,8 +51,8 @@ public class MailServiceImpl implements IMailService {
 	@PostConstruct
 	@Scheduled(cron = "* * * * * * ")
 	public void init() {
-		File[] jsonFiles = getJsonFile(this.getClass().getClassLoader()
-				.getResource("/").getPath().replaceFirst("/", ""));
+		File[] jsonFiles = getJsonFile(
+				this.getClass().getClassLoader().getResource("/").getPath().replaceFirst("/", ""));
 		if (jsonFiles.length == 0) {
 			logger.info("当前没有mail配置文件");
 			return;
@@ -64,14 +61,12 @@ public class MailServiceImpl implements IMailService {
 			for (File jsonFile : jsonFiles) {
 				if (fileLastModifyMap.get(jsonFile.getName()) != null) {
 					// 如果一个文件的最后修改时间和之前的一样,那就不解析,直接跳过
-					if (fileLastModifyMap.get(jsonFile.getName()).equals(
-							jsonFile.lastModified())) {
+					if (fileLastModifyMap.get(jsonFile.getName()).equals(jsonFile.lastModified())) {
 						continue;
 					}
 				} else {
 					// 如果fileLastModifyMap中没有文件的最后修改时间,说明该文件是新的文件,将文件的最后修改时间放入fileLastModifyMap中
-					fileLastModifyMap.put(jsonFile.getName(),
-							jsonFile.lastModified());
+					fileLastModifyMap.put(jsonFile.getName(), jsonFile.lastModified());
 				}
 
 				ObjectMapper mapper = new ObjectMapper();
@@ -80,8 +75,7 @@ public class MailServiceImpl implements IMailService {
 				JsonNode caeMailNodes = node.get("cae-mail");
 				if (caeMailNodes == null) {
 					logger.error(jsonFile.getName() + "文件中没有找到<cae-mail>节点",
-							new IllegalArgumentException(jsonFile.getName()
-									+ "文件中没有找到<cae-mail>节点"));
+							new IllegalArgumentException(jsonFile.getName() + "文件中没有找到<cae-mail>节点"));
 					continue;
 				}
 
@@ -89,31 +83,25 @@ public class MailServiceImpl implements IMailService {
 				for (int i = 0; i < caeMailNodes.size(); i++) {
 					JsonNode caeMailNode = caeMailNodes.get(i).get("type");
 					if (caeMailNode == null) {
-						logger.error(jsonFile.getName() + "第" + (i + 1)
-								+ "个<cae-mail>节点中" + "没有找到<type>节点",
-								new IllegalArgumentException(jsonFile.getName()
-										+ "第" + (i + 1) + "个<cae-mail>节点中"
-										+ "没有找到<type>节点"));
+						logger.error(jsonFile.getName() + "第" + (i + 1) + "个<cae-mail>节点中" + "没有找到<type>节点",
+								new IllegalArgumentException(
+										jsonFile.getName() + "第" + (i + 1) + "个<cae-mail>节点中" + "没有找到<type>节点"));
 						break;
 					}
 
 					String caeMail = caeMailNode.toString();
 					caeMail = caeMail.substring(1, caeMail.length() - 1);
 					if (!MailType.contains(caeMail)) {
-						logger.error(jsonFile.getName() + "中没有" + caeMail
-								+ "类型的收件人列表", new IllegalArgumentException(
-								jsonFile.getName() + "中没有" + caeMail
-										+ "类型的收件人列表"));
+						logger.error(jsonFile.getName() + "中没有" + caeMail + "类型的收件人列表",
+								new IllegalArgumentException(jsonFile.getName() + "中没有" + caeMail + "类型的收件人列表"));
 						continue;
 					}
 					MailType type = MailType.valueOf(caeMail);
 					JsonNode mailListNode = caeMailNodes.get(i).get("mailList");
 					if (mailListNode == null) {
-						logger.error(jsonFile.getName() + "第" + (i + 1)
-								+ "个<cae-mail>节点中" + "没有找到<mailList>节点",
-								new IllegalArgumentException(jsonFile.getName()
-										+ "第" + (i + 1) + "个<cae-mail>节点中"
-										+ "没有找到<mailList>节点"));
+						logger.error(jsonFile.getName() + "第" + (i + 1) + "个<cae-mail>节点中" + "没有找到<mailList>节点",
+								new IllegalArgumentException(
+										jsonFile.getName() + "第" + (i + 1) + "个<cae-mail>节点中" + "没有找到<mailList>节点"));
 						break;
 					}
 
@@ -123,34 +111,19 @@ public class MailServiceImpl implements IMailService {
 					for (int j = 0; j < mailListNode.size(); j++) {
 						mailAdressNode = mailListNode.get(j).get("address");
 						if (mailAdressNode == null) {
-							logger.error(
-									jsonFile.getName() + "第" + (i + 1)
-											+ "个<mailList>节点中"
-											+ "没有找到<address>节点",
-									new IllegalArgumentException(jsonFile
-											.getName()
-											+ "第"
-											+ (j + 1)
-											+ "个<mailList>节点中"
-											+ "没有找到<address>节点"));
+							logger.error(jsonFile.getName() + "第" + (i + 1) + "个<mailList>节点中" + "没有找到<address>节点",
+									new IllegalArgumentException(
+											jsonFile.getName() + "第" + (j + 1) + "个<mailList>节点中" + "没有找到<address>节点"));
 							break;
 						}
 						mailAddress = mailAdressNode.toString();
-						mailAddress = mailAddress.substring(1,
-								mailAddress.length() - 1);
+						mailAddress = mailAddress.substring(1, mailAddress.length() - 1);
 						if (!isEmail(mailAddress)) {
 							logger.error(
-									jsonFile.getName() + "第" + (i + 1)
-											+ "个<cae-mail>节点中的" + "第" + (j + 1)
+									jsonFile.getName() + "第" + (i + 1) + "个<cae-mail>节点中的" + "第" + (j + 1)
 											+ "个<address>的电子邮件不合法",
-									new IllegalArgumentException(jsonFile
-											.getName()
-											+ "第"
-											+ (i + 1)
-											+ "个<cae-mail>节点中的"
-											+ "第"
-											+ (j + 1)
-											+ "个<address>的电子邮件不合法"));
+									new IllegalArgumentException(jsonFile.getName() + "第" + (i + 1) + "个<cae-mail>节点中的"
+											+ "第" + (j + 1) + "个<address>的电子邮件不合法"));
 							break;
 						}
 						mailList.add(mailAddress);
@@ -189,13 +162,10 @@ public class MailServiceImpl implements IMailService {
 			MimeMessage mimeMessage = mailSender.createMimeMessage();
 			MimeMessageHelper mimeMessageHelper;
 			try {
-				mimeMessageHelper = new MimeMessageHelper(mimeMessage, true,
-						"UTF-8");
+				mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 				mimeMessageHelper.setTo(to);
-				String nick = javax.mail.internet.MimeUtility
-						.encodeText("cae项目组");
-				mimeMessageHelper.setFrom(new InternetAddress(nick
-						+ "<kuma_loveliver@163.com>"));
+				String nick = javax.mail.internet.MimeUtility.encodeText("cae项目组");
+				mimeMessageHelper.setFrom(new InternetAddress(nick + "<kuma_loveliver@163.com>"));
 				mimeMessageHelper.setSubject(mail.getTitle());
 				mimeMessageHelper.setText(mail.getContent());
 				mailSender.send(mimeMessage);
